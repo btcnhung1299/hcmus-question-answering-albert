@@ -168,6 +168,7 @@ def train(args, train_dataset, model, tokenizer):
     global_step = 1
     epochs_trained = 0
     steps_trained_in_current_epoch = 0
+
     # Check if continuing training from a checkpoint
     if os.path.exists(args.model_name_or_path):
         # set global_step to gobal_step of last saved checkpoint from model path
@@ -185,6 +186,7 @@ def train(args, train_dataset, model, tokenizer):
     train_iterator = trange(
         epochs_trained, int(args.num_train_epochs), desc="Epoch", disable=args.local_rank not in [-1, 0]
     )
+
     # Added here for reproductibility
     set_seed(args)
 
@@ -213,7 +215,7 @@ def train(args, train_dataset, model, tokenizer):
                 if args.version_2_with_negative:
                     inputs.update({"is_impossible": batch[7]})
             outputs = model(**inputs)
-            # model outputs are always tuple in transformers (see doc)
+            # Model outputs are always tuple in transformers (see doc)
             loss = outputs[0]
 
             if args.n_gpu > 1:
