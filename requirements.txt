@@ -2,3 +2,9 @@ tensorboardX
 tensorboard
 scikit-learn
 seqeval
+tqdm
+boto3
+requests
+regex
+sentencepiece
+sacremoses
