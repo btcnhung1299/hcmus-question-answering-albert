@@ -29,6 +29,8 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
 
+import save_to_drive
+
 from transformers import (
     WEIGHTS_NAME,
     AdamW,
@@ -268,6 +270,9 @@ def train(args, train_dataset, model, tokenizer):
                     torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
                     torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
                     logger.info("Saving optimizer and scheduler states to %s", output_dir)
+
+                    folder_name = os.path.join(output_dir)
+                    upload(folder_name)
 
             if args.max_steps > 0 and global_step > args.max_steps:
                 epoch_iterator.close()
