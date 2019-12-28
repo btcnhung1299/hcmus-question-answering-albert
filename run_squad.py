@@ -272,7 +272,7 @@ def train(args, train_dataset, model, tokenizer):
                     logger.info("Saving optimizer and scheduler states to %s", output_dir)
 
                     folder_name = os.path.join(output_dir)
-                    upload(folder_name)
+                    save_to_drive.upload(folder_name)
 
             if args.max_steps > 0 and global_step > args.max_steps:
                 epoch_iterator.close()
