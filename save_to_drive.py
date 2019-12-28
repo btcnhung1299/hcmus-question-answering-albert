@@ -13,7 +13,7 @@ drive = GoogleDrive(gauth)
 
 def upload(folder_dir, folder_name):
    file_compress = folder_name + '.zip'
-   os.system('zip {} {}'.format(file_compress, folder_dir))
+   os.system('zip -r {} {}'.format(file_compress, folder_dir))
    new_file = drive.CreateFile({'title': file_compress})
    new_file.SetContentFile(file_compress)
    new_file.Upload()
