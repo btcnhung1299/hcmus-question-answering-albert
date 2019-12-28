@@ -1,4 +1,5 @@
 # Init setup
+import os
 
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
@@ -11,7 +12,7 @@ gauth.credentials = GoogleCredentials.get_application_default()
 drive = GoogleDrive(gauth)
 
 def upload(folder_name):
-   !zip folder_name.zip folder_name
+   os.system('!zip folder_name.zip folder_name')
    file_name = folder_name + '.zip'
    new_file = drive.CreateFile({'title': file_name})
    new_file.SetContentFile(file_name)
