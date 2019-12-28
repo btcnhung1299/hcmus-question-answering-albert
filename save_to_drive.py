@@ -13,7 +13,7 @@ gauth.SaveCredentialsFile('credentials.txt')
 drive = GoogleDrive(gauth) 
 
 def upload(folder_dir, folder_name):
-   if not gauth.access_token_expired:
+   if gauth.access_token_expired:
       gauth.Refresh()
       drive = GoogleDrive(gauth)
 
