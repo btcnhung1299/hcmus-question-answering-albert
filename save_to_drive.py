@@ -9,9 +9,15 @@ from oauth2client.client import GoogleCredentials
 auth.authenticate_user()
 gauth = GoogleAuth()
 gauth.credentials = GoogleCredentials.get_application_default()
-drive = GoogleDrive(gauth)
+gauth.SaveCredentialsFile('credentials.txt')
+drive = GoogleDrive(gauth) 
 
 def upload(folder_dir, folder_name):
+   if not gauth.access_token_expired:
+      gauth.LoadCredentialsFile('credentials.txt')
+      gauth.Refresh()
+      drive = GoogleDrive(gauth)
+
    file_compress = folder_name + '.zip'
    os.system('zip -r {} {}'.format(file_compress, folder_dir))
    new_file = drive.CreateFile({'title': file_compress})
