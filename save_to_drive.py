@@ -12,8 +12,8 @@ gauth.credentials = GoogleCredentials.get_application_default()
 drive = GoogleDrive(gauth)
 
 def upload(folder_name):
-   os.system('zip folder_name.zip folder_name')
    file_name = folder_name + '.zip'
+   os.system('zip {} {}'.format(file_name, folder_name))
    new_file = drive.CreateFile({'title': file_name})
    new_file.SetContentFile(file_name)
    new_file.Upload()
