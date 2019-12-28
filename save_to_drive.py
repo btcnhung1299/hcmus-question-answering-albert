@@ -12,11 +12,15 @@ gauth.credentials = GoogleCredentials.get_application_default()
 gauth.SaveCredentialsFile('credentials.txt')
 drive = GoogleDrive(gauth) 
 
-def upload(folder_dir, folder_name):
+def refresh():
+   global gauth, drive 
    if gauth.access_token_expired:
       gauth.Refresh()
       drive = GoogleDrive(gauth)
 
+def upload(folder_dir, folder_name):
+   global drive
+   refresh()
    file_compress = folder_name + '.zip'
    os.system('zip -r {} {}'.format(file_compress, folder_dir))
    new_file = drive.CreateFile({'title': file_compress})
