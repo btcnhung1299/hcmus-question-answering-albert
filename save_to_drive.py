@@ -17,4 +17,4 @@ def upload(folder_dir, folder_name):
    new_file = drive.CreateFile({'title': file_compress})
    new_file.SetContentFile(file_compress)
    new_file.Upload()
-   print('Uploaded {} to drive'.format(folder_name))
+   print('Uploaded {} from {} to drive'.format(folder_name, folder_dir))
