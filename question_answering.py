@@ -1,27 +1,37 @@
+print('Loading configurations...')
+
 import os
 import torch
 
-from transformers import (
-AlbertConfig,
-AlbertTokenizer,
-AlbertForQuestionAnswering
-)
+from transformers import (AlbertConfig, AlbertTokenizer, AlbertForQuestionAnswering)
 
-MODEL_CLASSES = {
-   'albert': (AlbertConfig, AlbertForQuestionAnswering, AlbertTokenizer),
-}
-
+MODEL_CLASSES = {'albert': (AlbertConfig, AlbertForQuestionAnswering, AlbertTokenizer)}
 SPIECE_UNDERLINE = "▁"
 
+def _truncate_seq_pair(tokens_a, tokens_b, max_length):
+   """Truncates a sequence pair in place to the maximum length."""
+   # This is a simple heuristic which will always truncate the longer sequence
+   # one token at a time. This makes more sense than truncating an equal percent
+   # of tokens from each, since if one sequence is very short then each token
+   # that's truncated likely contains more information than a longer sequence.
+
+   while True:
+      total_length = len(tokens_a) + len(tokens_b)
+      if total_length <= max_length:
+         break
+      if len(tokens_a) > len(tokens_b):
+         tokens_a.pop()
+      else:
+         tokens_b.pop()
+
 class QuestionAnswering(object):
-   def __init__(self, config_file, weight_file, tokenizer_file, model_type):
+   def __init__(self, config_file, weight_file, tokenizer_file):
       self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-      self.config_class, self.model_class, self.tokenizer_class = MODEL_CLASSES[model_type]
+      self.config_class, self.model_class, self.tokenizer_class = MODEL_CLASSES['albert']
       self.config = self.config_class.from_json_file(config_file)
       self.model = self.model_class(self.config)
       self.model.load_state_dict(torch.load(weight_file, map_location=self.device))
       self.tokenizer = self.tokenizer_class(tokenizer_file)
-      self.model_type = model_type
 
    def to_list(self, tensor):
       return tensor.detach().cpu().tolist()
@@ -30,60 +40,46 @@ class QuestionAnswering(object):
       self.model.eval()
       with torch.no_grad():
          inputs, attention_mask, tokens = self.convert_examples_to_features(question, passage)
-         if self.model_type == 'albert':
-            start_logit, end_logit = self.model(inputs)
-            start_idx, end_idx = torch.argmax(start_logit), torch.argmax(end_logit)
-            answer = self.albert_convert_tokens_to_string(tokens[start_idx : end_idx + 1])
+         start_logit, end_logit = self.model(inputs)
+         start_idx, end_idx = torch.argmax(start_logit), torch.argmax(end_logit)
+         answer = self.convert_tokens_to_string(tokens[start_idx : end_idx + 1])
       return answer
 
-   
-
-   def albert_convert_tokens_to_string(self, tokens):
-      """Converts a sequence of tokens (strings for sub-words) in a single string."""
+   def convert_tokens_to_string(self, tokens):
       out_string = "".join(tokens).replace(SPIECE_UNDERLINE, " ").strip()
       return out_string
       
-   
-
-   def convert_examples_to_features(self, question, passage, max_seq_length = 384,
-         zero_pad=False, include_CLS_token=True, include_SEP_token=True):
-
-      tokens_a = self.tokenizer.tokenize(question)
-      tokens_b = self.tokenizer.tokenize(passage)
-      if len(tokens_a) > max_seq_length - 2:
-          tokens_a = tokens_a[0: 0(max_seq_length - 2)]
+   def convert_examples_to_features(self, question, passage, max_seq_length = 384):
+      question_tokens = self.tokenizer.tokenize(question)
+      context_tokens = self.tokenizer.tokenize(passage)
+      _truncate_seq_pair(context_tokens, question_tokens, max_seq_length - 3)
 
       tokens = []
-      if include_CLS_token:
-         tokens.append(self.tokenizer.cls_token)
-      for token in tokens_a:
+      tokens.append(self.tokenizer.cls_token)
+      for token in question_tokens:
          tokens.append(token)
-      if include_SEP_token:
-         tokens.append(self.tokenizer.sep_token)
-      for token in tokens_b:
+      tokens.append(self.tokenizer.sep_token)
+      for token in context_tokens:
          tokens.append(token)
+      tokens.append(self.tokenizer.sep_token)
 
       input_ids = self.tokenizer.convert_tokens_to_ids(tokens)
       input_mask = [1] * len(input_ids)
 
-      if zero_pad:
-         while len(input_ids) < max_seq_length:
-            input_ids.append(0)
-            input_mask.append(0)
-
       return torch.tensor(input_ids).unsqueeze(0), input_mask, tokens
+      #return input_ids, input_mask, tokens
 
+print('Loading albert model...')
 model_dir = './model'
 config_file = model_dir + '/config.json'
 weight_file = model_dir + '/pytorch_model.bin'
 tokenizer_file = model_dir + '/spiece.model'
-print('Loading albert model...')
-albert_qa = QuestionAnswering(config_file, weight_file, tokenizer_file, 'albert')
+albert_qa = QuestionAnswering(config_file, weight_file, tokenizer_file)
 
 print('Enter passage:')
 passage = input()
 print('Enter question:')
 question = input()
-print('Answer:')
 ans = albert_qa.get_answer(question, passage)
+print('Answer:')
 print(ans)
