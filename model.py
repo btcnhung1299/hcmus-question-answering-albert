@@ -69,17 +69,9 @@ class QuestionAnswering(object):
       return torch.tensor(input_ids).unsqueeze(0), input_mask, tokens
       #return input_ids, input_mask, tokens
 
-print('Loading albert model...')
 model_dir = './model'
 config_file = model_dir + '/config.json'
 weight_file = model_dir + '/pytorch_model.bin'
 tokenizer_file = model_dir + '/spiece.model'
 albert_qa = QuestionAnswering(config_file, weight_file, tokenizer_file)
-
-print('Enter passage:')
-passage = input()
-print('Enter question:')
-question = input()
-ans = albert_qa.get_answer(question, passage)
-print('Answer:')
-print(ans)
+print('Ready')
